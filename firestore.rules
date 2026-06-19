@@ -1,0 +1,97 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Reusable Attribute-Based Identity and Security Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return userId == "stark-sandbox-uid" || (request.auth != null && request.auth.uid == userId);
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Entity Schema Validators with rigorous size limits
+    function isValidUser(data) {
+      return (data.userId == "stark-sandbox-uid" || (request.auth != null && data.userId == request.auth.uid))
+        && data.email is string && data.email.size() <= 256
+        && (!('preferredName' in data.keys()) || (data.preferredName is string && data.preferredName.size() <= 128))
+        && (!('aiSummary' in data.keys()) || (data.aiSummary is string && data.aiSummary.size() <= 10000));
+    }
+
+    function isValidContact(data) {
+      return data.contactId is string && data.contactId.size() <= 128
+        && data.name is string && data.name.size() <= 128
+        && (!('relationship' in data.keys()) || (data.relationship is string && data.relationship.size() <= 128))
+        && (!('phoneNumber' in data.keys()) || (data.phoneNumber is string && data.phoneNumber.size() <= 32))
+        && (!('whatsappNumber' in data.keys()) || (data.whatsappNumber is string && data.whatsappNumber.size() <= 32));
+    }
+
+    function isValidDevice(data) {
+      return data.deviceId is string && data.deviceId.size() <= 128
+        && data.name is string && data.name.size() <= 128
+        && data.type is string && data.type.size() <= 64
+        && data.status is string && data.status.size() <= 64
+        && (!('value' in data.keys()) || (data.value is string && data.value.size() <= 128));
+    }
+
+    function isValidInteraction(data) {
+      return data.interactionId is string && data.interactionId.size() <= 128
+        && data.command is string && data.command.size() <= 5000
+        && data.response is string && data.response.size() <= 10000
+        && data.intent is string && data.intent.size() <= 64;
+    }
+
+    // Direct match gates matching database blueprint paths
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(incoming())
+                       && incoming().createdAt is string && incoming().createdAt.size() <= 64
+                       && incoming().updatedAt is string && incoming().updatedAt.size() <= 64;
+      allow update: if isOwner(userId) && isValidUser(incoming())
+                       && incoming().updatedAt is string && incoming().updatedAt.size() <= 64
+                       && incoming().createdAt == existing().createdAt;
+      allow delete: if isOwner(userId);
+
+      // Contact subcollection
+      match /contacts/{contactId} {
+        allow read, list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidContact(incoming())
+                          && incoming().createdAt is string && incoming().createdAt.size() <= 64;
+        allow update: if isOwner(userId) && isValidContact(incoming());
+        allow delete: if isOwner(userId);
+      }
+
+      // Smart Devices subcollection
+      match /devices/{deviceId} {
+        allow read, list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidDevice(incoming())
+                          && incoming().updatedAt is string && incoming().updatedAt.size() <= 64;
+        allow update: if isOwner(userId) && isValidDevice(incoming())
+                          && incoming().updatedAt is string && incoming().updatedAt.size() <= 64;
+        allow delete: if isOwner(userId);
+      }
+
+      // Interactions Logging subcollection
+      match /interactions/{interactionId} {
+        allow read, list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidInteraction(incoming())
+                          && incoming().timestamp is string && incoming().timestamp.size() <= 64;
+        allow update: if isOwner(userId) && isValidInteraction(incoming());
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}

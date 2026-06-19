@@ -1,0 +1,6 @@
+{
+  "name": "Jarvix",
+  "description": "A high-tech futuristic dashboard inspired by Iron Man's JARVIX assistant, powered by voice recognition, smart contacts calling/messaging, home automation, and memory integration.",
+  "requestFramePermissions": ["microphone", "camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

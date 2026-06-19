@@ -1,0 +1,77 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User profile with preferences and Jarvis personalizations.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Owner identifier matching auth.uid" },
+        "email": { "type": "string", "format": "email", "description": "User email address" },
+        "preferredName": { "type": "string", "description": "How Jarvis refers to you (e.g. Tony, Mr. Stark)" },
+        "aiSummary": { "type": "string", "description": "Jarvis' learned memory of user's habits, favorites, and preference records" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Profile creation time" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Profile last update time" }
+      },
+      "required": ["userId", "email", "createdAt", "updatedAt"]
+    },
+    "Contact": {
+      "title": "Contact Details",
+      "description": "User contacts list for calls and messaging integrations.",
+      "type": "object",
+      "properties": {
+        "contactId": { "type": "string", "description": "Unique contact ID under the user subcollection" },
+        "name": { "type": "string", "description": "Contact display name (e.g. Mom, Dad, Pepper)" },
+        "relationship": { "type": "string", "description": "Relationship (e.g., Mom, Husband, Assistant)" },
+        "phoneNumber": { "type": "string", "description": "Phone number for mock calling" },
+        "whatsappNumber": { "type": "string", "description": "WhatsApp number for quick chat action" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Created time" }
+      },
+      "required": ["contactId", "name", "createdAt"]
+    },
+    "SmartDevice": {
+      "title": "Smart Home Device",
+      "description": "IoT device controlled by Jarvis.",
+      "type": "object",
+      "properties": {
+        "deviceId": { "type": "string", "description": "Unique device identifier" },
+        "name": { "type": "string", "description": "Device name (e.g. Arch Reactor, Living Room Lights, Lab AC)" },
+        "type": { "type": "string", "description": "Type of smart device" },
+        "status": { "type": "string", "description": "Basic state (on, off, locked, unlocked, open)" },
+        "value": { "type": "string", "description": "Detailed attribute state (e.g., 72 degrees, Blue sky, 85%)" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Timestamp when device state was changed" }
+      },
+      "required": ["deviceId", "name", "type", "status", "updatedAt"]
+    },
+    "Interaction": {
+      "title": "Interaction Log",
+      "description": "Commands logs for persistent memory analysis.",
+      "type": "object",
+      "properties": {
+        "interactionId": { "type": "string", "description": "Log message unique identifier" },
+        "command": { "type": "string", "description": "Voice or text command sent to Jarvis" },
+        "response": { "type": "string", "description": "Synthesized AI response by Jarvis" },
+        "intent": { "type": "string", "description": "Underlying action category" },
+        "timestamp": { "type": "string", "format": "date-time", "description": "Transaction log entry time" }
+      },
+      "required": ["interactionId", "command", "response", "intent", "timestamp"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "Owner user settings and AI summaries"
+    },
+    "users/{userId}/contacts/{contactId}": {
+      "schema": "Contact",
+      "description": "Contacts for simulated speech actions (make calls, text)"
+    },
+    "users/{userId}/devices/{deviceId}": {
+      "schema": "SmartDevice",
+      "description": "User smart home network endpoints"
+    },
+    "users/{userId}/interactions/{interactionId}": {
+      "schema": "Interaction",
+      "description": "Past dialogues processed by the server-side memory module"
+    }
+  }
+}
